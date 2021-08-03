@@ -14,9 +14,9 @@ class Verbrauchsrechner(object):
         self.gesamtVerbrauch = []
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.efficencyTableName!r}, {self.priceListName!r}, {self.consumptionListName!r}, {self.staedteListe!r}, {self.warenListe!r}, {self.produktionsListe!r})"
+        return f"{self.__class__.__name__}({self.efficencyTableName!r}, {self.priceListName!r}, {self.consumptionListName!r}, {self.staedteListe!r}, {self.warenNamen}, {self.gesamtVerbrauch})"
     def __str__(self):
-        return f"{self.__class__.__name__} Attribute:\n {self.efficencyTableName}\n {self.priceListName}\n {self.consumptionListName}\n {self.staedteListe}\n\n {self.warenListe}\n\n {self.verbrauchsListe}\n\n {self.produktionsListe}"
+        return f"{self.__class__.__name__} Attribute:\n {self.efficencyTableName}\n {self.priceListName}\n {self.consumptionListName}\n {self.staedteListe}\n\n {self.verbrauchsListe}\n\n {self.warenNamen}\n\n {self.gesamtVerbrauch}\n\n"
 
 
     def prepareTables(self):
