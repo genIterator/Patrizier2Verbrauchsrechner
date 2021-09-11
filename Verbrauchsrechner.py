@@ -1,6 +1,6 @@
 class Verbrauchsrechner(object):
 
-    def __init__(self, efficencyTableName = "ProductionEfficency.csv", priceListName = "ProductList.csv", consumptionListName = "ConsumptionValues.csv"):
+    def __init__(self, efficencyTableName = "ProductionEfficency.csv", priceListName = "ProductList.csv", consumptionListName = "ConsumptionValues.csv", stadtName = ""):
         self.efficencyTableName = efficencyTableName
         self.priceListName = priceListName
         self.consumptionListName = consumptionListName
@@ -11,13 +11,14 @@ class Verbrauchsrechner(object):
         # einfache Liste aller Waren
         self.warenNamen = []
         # berechneter Verbrauch basierend auf Einwohnern und Reisedauer
-        self.gesamtVerbrauch = []
+        self.stadtVerbrauch = []
+        self.stadtName = stadtName
+        self.lastWaren = ["Eisenerz", "Fisch", "Fleisch", "Getreide", "Hanf", "Holz", "Wolle", "Ziegel"]
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.efficencyTableName!r}, {self.priceListName!r}, {self.consumptionListName!r}, {self.staedteListe!r}, {self.warenNamen}, {self.gesamtVerbrauch})"
+        return f"{self.__class__.__name__}({self.efficencyTableName!r}, {self.priceListName!r}, {self.consumptionListName!r}, {self.staedteListe!r}, {self.warenNamen}, {self.stadtVerbrauch})"
     def __str__(self):
-        return f"{self.__class__.__name__} Attribute:\n {self.efficencyTableName}\n {self.priceListName}\n {self.consumptionListName}\n {self.staedteListe}\n\n {self.verbrauchsListe}\n\n {self.warenNamen}\n\n {self.gesamtVerbrauch}\n\n"
-
+        return f"{self.__class__.__name__} Attribute:\n {self.efficencyTableName}\n {self.priceListName}\n {self.consumptionListName}\n {self.staedteListe}\n\n {self.verbrauchsListe}\n\n {self.warenNamen}\n\n {self.stadtVerbrauch}\n\n"
 
     def prepareTables(self):
         # create city list
@@ -45,16 +46,77 @@ class Verbrauchsrechner(object):
         # Wochenverbrauch je 1k je Klasse
         for index, warenListe in enumerate(self.verbrauchsListe):
             currVerbrauch = warenListe[0] * (reiche / 1000) * (tage / 7)
-            self.gesamtVerbrauch.append(currVerbrauch)
+            self.stadtVerbrauch.append(currVerbrauch)
             currVerbrauch = warenListe[1] * (wohlis / 1000) * (tage / 7)
-            self.gesamtVerbrauch[index] += currVerbrauch
+            self.stadtVerbrauch[index] += currVerbrauch
             currVerbrauch = warenListe[2] * (arme / 1000) * (tage / 7)
-            self.gesamtVerbrauch[index] += currVerbrauch
-            self.gesamtVerbrauch[index] = round(self.gesamtVerbrauch[index])
+            self.stadtVerbrauch[index] += currVerbrauch
+            self.stadtVerbrauch[index] = round(self.stadtVerbrauch[index])
 
-    def printGesamtverbrauch(self):
-        print("\n Gesamtverbrauch der Stadt: \n")
+    def printVerbrauch(self, warenVerbrauch, descriptionText = "\n Gesamtverbrauch der Stadt: \n"):
+        gesamtFass = 0        
+        print(descriptionText)
         print("|    Ware    | Verbrauch |")
         print("--------------------------")
         for index, ware in enumerate(self.warenNamen):
-            print(f"| {ware:10} | {str(self.gesamtVerbrauch[index]):9} |")
+            print(f"| {ware:10} | {str(warenVerbrauch[index]):9} |")
+            if ware in self.lastWaren:
+                gesamtFass += int(warenVerbrauch[index]) * 10
+            else:
+                gesamtFass += int(warenVerbrauch[index])
+        print("--------------------------")
+        print(f"| Gesamt: {gesamtFass:10} Fass|")
+
+    def printStadtverbrauch(self):
+        self.printVerbrauch(self.stadtVerbrauch)
+
+    def printHanseVerbrauch(self, gesamtWarenVerbrauch):
+        self.printVerbrauch(gesamtWarenVerbrauch, "\n Gesamtverbrauch der Städte: \n")
+
+    def getStadtLineForUpdate(self):
+        line = self.stadtName + ";"
+        for value in self.stadtVerbrauch:
+            line += str(value) + ";"
+        line = line[:-1]
+        line += "\r\n"
+        return line
+
+    def updateGesamtverbrauchDatei(self, fileName:str):
+        data = []
+        alreadyAppended = False
+        with open(fileName,mode="r") as fHandle:
+            data = fHandle.readlines()        
+        if data:
+            for idx, line in enumerate(data):
+                line = line.strip()
+                values = line.split(";")
+                if (values[0] == self.stadtName):
+                    # found city in file, update the line
+                    data[idx] = self.getStadtLineForUpdate()
+                    alreadyAppended = True
+                    break
+        if not alreadyAppended:
+            data.append(self.getStadtLineForUpdate())        
+        with open(fileName, mode="+w") as fHandle:
+            fHandle.writelines(data)
+
+    def calculateHanseVerbrauch(self, fileName:str):
+        gesamtWarenVerbrauch = [0 for val in range(len(self.warenNamen))]
+        with open(fileName) as fHandle:
+            for line in fHandle:
+                line = line.strip()
+                values = line.split(";")
+                for idx, value in enumerate(values[1:]):
+                    gesamtWarenVerbrauch[idx] += int(value)
+        return gesamtWarenVerbrauch
+
+    def printAllCities(self, fileName):
+        with open(fileName) as fHandle:
+            for line in fHandle:
+                line = line.strip()
+                values = line.split(";")
+                self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n")
+
+
+
+
