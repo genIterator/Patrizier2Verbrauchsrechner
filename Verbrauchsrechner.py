@@ -115,7 +115,8 @@ class Verbrauchsrechner(object):
             for line in fHandle:
                 line = line.strip()
                 values = line.split(";")
-                self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n")
+                if (len(values) > 1):
+                    self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n")
 
 
 
