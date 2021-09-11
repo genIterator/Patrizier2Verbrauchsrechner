@@ -1,11 +1,7 @@
 
 import argparse
-import sys
 import os
-import os.path
 from Verbrauchsrechner import Verbrauchsrechner
-
-
 
 def main():
     parser = argparse.ArgumentParser(description='Programm Patrizier 2, um die Verbrauchswerte der Einwohner einer Stadt zu berechnen.')
@@ -35,11 +31,11 @@ def main():
         if (args.printall == False) and (args.gesamt == False):
             print("Kein Stadtverbrauch berechnet, ggf. fehlen Argumente.")
 
-    if (args.printall == True):
+    if (args.printall):
         fileName = os.getcwd()+"/Hanseverbrauch.txt"
         rechner.printAllCities(fileName)
 
-    if (args.gesamt == True):
+    if (args.gesamt):
         fileName = os.getcwd()+"/Hanseverbrauch.txt"
         rechner.printHanseVerbrauch(rechner.calculateHanseVerbrauch(fileName))
 
