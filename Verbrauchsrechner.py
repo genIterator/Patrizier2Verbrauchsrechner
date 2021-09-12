@@ -78,26 +78,37 @@ class Verbrauchsrechner(object):
         for value in self.stadtVerbrauch:
             line += str(value) + ";"
         line = line[:-1]
-        line += "\r\n"
-        return line
+        #line += "\n"
+        return line.encode("Utf-8")
 
     def updateGesamtverbrauchDatei(self, fileName:str):
         data = []
         alreadyAppended = False
-        with open(fileName,mode="r") as fHandle:
+
+        with open(fileName,mode="rb") as fHandle:
             data = fHandle.readlines()        
+
         if data:
             for idx, line in enumerate(data):
-                line = line.strip()
-                values = line.split(";")
+                values = line.decode("Utf-8").strip().split(";")
+                #values = line.split(";")
                 if (values[0] == self.stadtName):
                     # found city in file, update the line
+                    if (len(data) == idx +1):
+                        #last line has no new line
+                        data[idx] += "\n".encode("Utf-8")
                     data[idx] = self.getStadtLineForUpdate()
+                    if (len(data) != idx+1):
+                        # lines in the middle need line break
+                        data[idx] += "\n".encode("Utf-8")
                     alreadyAppended = True
                     break
         if not alreadyAppended:
-            data.append(self.getStadtLineForUpdate())        
-        with open(fileName, mode="+w") as fHandle:
+            # line will be added at the end
+            data[len(data)-1] += "\n".encode("Utf-8")
+            data.append(self.getStadtLineForUpdate())   
+
+        with open(fileName, mode="+wb") as fHandle:
             fHandle.writelines(data)
 
     def calculateHanseVerbrauch(self, fileName:str):
