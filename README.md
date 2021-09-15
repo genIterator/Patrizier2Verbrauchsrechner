@@ -5,10 +5,14 @@ Tool for Patrizier 2 Gold (Patrician 3) to calculate consumption of goods
     * -r \<number of rich inhabitants>
     * -w \<number of wealthy inhabitants>
     * -a \<number of poor inhabitants>
-    * -t \<traveltime in days to the city>
+    * -t \<traveltime in days to the city> (may be omitted, see below)
 * In order to store the calculated values, the following parameters are required as well:
     * -c \<name of the city>
     * -u
+* If traveltime is omitted, it is calculated from the "Traveltime.csv"
+    * modify the "Traveltime.csv" depending on the used ship and the kontor
+    * currently, only travel times starting in Stettin are provided
+    * currently, only travel times with ship type Kraier are provided
 * Print the consumption for all stored cities:
     * -g
 * Print the consumption of each stored city:

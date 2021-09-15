@@ -1,3 +1,6 @@
+from io import SEEK_CUR
+
+
 class Verbrauchsrechner(object):
 
     def __init__(self, efficencyTableName = "ProductionEfficency.csv", priceListName = "ProductList.csv", consumptionListName = "ConsumptionValues.csv", stadtName = ""):
@@ -129,6 +132,50 @@ class Verbrauchsrechner(object):
                 if (len(values) > 1):
                     self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n")
 
+    def calculateTravelTime(self, fileName: str):
+        schiff = ""
+        start = ""
+        ziel = self.stadtName
+        traveltime = 7
+        columnIndex = 0
+        data = []
 
+        with open(fileName, "rb") as fHandle:
+            for line in fHandle:
+                data.append(line.decode("Utf-8").strip().split(","))
+        
+        if len(data) >= 7:
+            # format of first 4 lines is fixed
+            schiff = data[0][1]
+            start = data[1][1] 
+            targetCities = data[2]
+            startcities = data[3]
 
+            if len(targetCities) > 2 and targetCities[0] == "Ziel":
+                #find route
+                for index, city in enumerate(targetCities[1:]):
+                    if (city == ziel) and (startcities[index] == start):
+                        # increase index by 1 because first column is skipped!
+                        columnIndex = index +1
+                        break
 
+                if data[4][columnIndex] == schiff:
+                    # assume 75% usage of ship for whole route
+                    # table lists 100% and 50%
+                    traveltime = int(data[5][columnIndex]) + int(data[6][columnIndex])
+                else:
+                    #iterate over other lines to find ship
+                    if len(data) >= 10:
+                        for rowindex, entry in enumerate(data [7:]):
+                            if (entry[0] == "Schiff") and (entry[columnIndex] == schiff):
+                                # iteration starts not at line 0!
+                                offset = 7
+                                # assume 75% usage of ship for whole route
+                                # table lists 100% and 50%
+                                traveltime = int(data[rowindex+offset+1][columnIndex]) + int(data[rowindex+offset+2][columnIndex])
+                    else:
+                        print("Angegebener Schiffstyp konnte nicht gefunden werden. Reisezeit konnte nicht berechnet werden!")
+        else:
+            print(f"Format of {fileName} is wrong!")   
+        print(f"Berechnete Reisezeit: {traveltime} Tage")     
+        return traveltime

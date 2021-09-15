@@ -17,12 +17,17 @@ def main():
     
     rechner = Verbrauchsrechner(stadtName=args.city)
     rechner.prepareTables()
-
-    if (args.reiche and args.wohlis and args.arme and args.time):
-        rechner.calculateConsumption(args.reiche, args.wohlis, args.arme, args.time)
-        rechner.printStadtverbrauch()
+    if (args.reiche and args.wohlis and args.arme):
+        if not args.time and not args.city:
+            print("Calculation of travel time requires a city!")
+        else:
+            if not args.time:
+                fileName = os.getcwd()+"/Traveltime.csv"
+                args.time = rechner.calculateTravelTime(fileName)
+            rechner.calculateConsumption(args.reiche, args.wohlis, args.arme, args.time)
+            rechner.printStadtverbrauch()
         if (args.update == True):
-            if (args.city == ""):
+            if (not args.city):
                 print("Fehler: Update der Gesamtliste erfordert einen Städtenamen!")
             else:
                 fileName = os.getcwd()+"/Hanseverbrauch.txt"
