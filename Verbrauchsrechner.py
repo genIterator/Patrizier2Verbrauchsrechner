@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-
+import os
 
 class Verbrauchsrechner(object):
 
@@ -56,18 +56,37 @@ class Verbrauchsrechner(object):
             self.stadtVerbrauch[index] += currVerbrauch
             self.stadtVerbrauch[index] = round(self.stadtVerbrauch[index])
 
-    def printVerbrauch(self, warenVerbrauch, descriptionText = "\n Gesamtverbrauch der Stadt: \n"):
-        gesamtFass = 0        
+    def printVerbrauch(self, warenVerbrauch, descriptionText = "\n Gesamtverbrauch der Stadt: \n", stadt = ""):
+        gesamtFass = 0      
+        efficiency = self.parseEfficencyTable(stadt) 
+        printEff = False
+        
+        if len(efficiency) > 1:
+            printEff = True
+        else:
+            printEff = False
+        
         print(descriptionText)
-        print("|    Ware    | Verbrauch |")
-        print("--------------------------")
+        if printEff:
+            print("|    Ware    | Verbrauch | Effizienz |")
+            print("--------------------------------------")
+        else:
+            print("|    Ware    | Verbrauch |")
+            print("--------------------------")
+        
         for index, ware in enumerate(self.warenNamen):
-            print(f"| {ware:10} | {str(warenVerbrauch[index]):9} |")
+            if printEff:
+                print(f"| {ware:10} | {str(warenVerbrauch[index]):9} | {efficiency[index]:9} |")
+            else:
+                print(f"| {ware:10} | {str(warenVerbrauch[index]):9} |")
             if ware in self.lastWaren:
                 gesamtFass += int(warenVerbrauch[index]) * 10
             else:
                 gesamtFass += int(warenVerbrauch[index])
-        print("--------------------------")
+        if printEff:
+            print("--------------------------------------")
+        else:
+            print("--------------------------")
         print(f"| Gesamt: {gesamtFass:10} Fass|")
 
     def printStadtverbrauch(self):
@@ -130,7 +149,8 @@ class Verbrauchsrechner(object):
                 line = line.strip()
                 values = line.split(";")
                 if (len(values) > 1):
-                    self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n")
+                    # workaround for city names
+                    self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n", values[0])
 
     def calculateTravelTime(self, fileName: str):
         schiff = ""
@@ -179,3 +199,20 @@ class Verbrauchsrechner(object):
             print(f"Format of {fileName} is wrong!")   
         print(f"Berechnete Reisezeit: {traveltime} Tage")     
         return traveltime
+
+    def parseEfficencyTable(self, stadt = ""):
+        print("")
+        data = []
+        columnNr = 0
+        efficiency = []
+        # workaround if cities are read from file
+        if self.stadtName != "" and stadt == "":
+            stadt = self.stadtName
+        if self.stadtName != "":
+            with open(self.efficencyTableName, "rb") as fHandle:
+                for line in fHandle:
+                    data.append(line.decode("Utf-8").strip().split(","))        
+            for line in data:
+                if (line[0] == stadt):
+                    efficiency = line[1:]
+        return efficiency
