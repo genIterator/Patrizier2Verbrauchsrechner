@@ -201,9 +201,7 @@ class Verbrauchsrechner(object):
         return traveltime
 
     def parseEfficencyTable(self, stadt = ""):
-        print("")
         data = []
-        columnNr = 0
         efficiency = []
         # workaround if cities are read from file
         if self.stadtName != "" and stadt == "":
