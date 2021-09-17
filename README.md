@@ -11,6 +11,7 @@ Tool for Patrizier 2 Gold (Patrician 3) to calculate consumption of goods
     * -u
 * If traveltime is omitted, it is calculated from the "Traveltime.csv"
     * modify the "Traveltime.csv" depending on the used ship and the kontor
+    * please note that the travel time is calculated with 75% average ship load
     * currently, only travel times starting in Stettin are provided
     * currently, only travel times with ship type Kraier are provided
 * Print the consumption for all stored cities:
