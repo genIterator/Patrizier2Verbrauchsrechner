@@ -44,6 +44,7 @@ class Verbrauchsrechner(object):
                 for value in currEff[1:]:
                     self.verbrauchsListe[nr-1].append(float(value))
                 self.warenNamen.append(currEff[0])
+        return
     
     def calculateConsumption(self, reiche: int, wohlis: int , arme: int, tage: int = 7):
         # Wochenverbrauch je 1k je Klasse
@@ -55,10 +56,11 @@ class Verbrauchsrechner(object):
             currVerbrauch = warenListe[2] * (arme / 1000) * (tage / 7)
             self.stadtVerbrauch[index] += currVerbrauch
             self.stadtVerbrauch[index] = round(self.stadtVerbrauch[index])
+        return
 
-    def printVerbrauch(self, warenVerbrauch, descriptionText = "\n Gesamtverbrauch der Stadt: \n", stadt = ""):
+    def printVerbrauch(self, warenVerbrauch, descriptionText = "\n Gesamtverbrauch der Stadt: \n"):
         gesamtFass = 0      
-        efficiency = self.parseEfficencyTable(stadt) 
+        efficiency = self.parseEfficencyTable() 
         printEff = False
         
         if len(efficiency) > 1:
@@ -88,12 +90,15 @@ class Verbrauchsrechner(object):
         else:
             print("--------------------------")
         print(f"| Gesamt: {gesamtFass:10} Fass|")
+        return
 
     def printStadtverbrauch(self):
         self.printVerbrauch(self.stadtVerbrauch)
+        return
 
     def printHanseVerbrauch(self, gesamtWarenVerbrauch):
         self.printVerbrauch(gesamtWarenVerbrauch, "\n Gesamtverbrauch der Städte: \n")
+        return
 
     def getStadtLineForUpdate(self):
         line = self.stadtName + ";"
@@ -132,6 +137,7 @@ class Verbrauchsrechner(object):
 
         with open(fileName, mode="+wb") as fHandle:
             fHandle.writelines(data)
+        return
 
     def calculateHanseVerbrauch(self, fileName:str):
         gesamtWarenVerbrauch = [0 for val in range(len(self.warenNamen))]
@@ -144,17 +150,22 @@ class Verbrauchsrechner(object):
         return gesamtWarenVerbrauch
 
     def printAllCities(self, fileName):
+        oldName = self.stadtName
         with open(fileName) as fHandle:
             for line in fHandle:
                 line = line.strip()
                 values = line.split(";")
                 if (len(values) > 1):
                     # workaround for city names
-                    self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n", values[0])
+                    self.stadtName = values[0]
+                    self.printVerbrauch(values[1:], f"\n Gesamtverbrauch der Stadt: {values[0]} \n")
+        self.stadtName = oldName
+        return
 
     def calculateTravelTime(self, fileName: str):
         schiff = ""
         start = ""
+        # table is reversed with starting town and target town
         ziel = self.stadtName
         traveltime = 7
         columnIndex = 0
@@ -165,7 +176,7 @@ class Verbrauchsrechner(object):
                 data.append(line.decode("Utf-8").strip().split(","))
         
         if len(data) >= 7:
-            # format of first 4 lines is fixed
+            # format of first 4 lines is fixed atm
             schiff = data[0][1]
             start = data[1][1] 
             targetCities = data[2]
@@ -186,10 +197,10 @@ class Verbrauchsrechner(object):
                 else:
                     #iterate over other lines to find ship
                     if len(data) >= 10:
-                        for rowindex, entry in enumerate(data [7:]):
+                        # skip first 6 rows, since the ship type was not found
+                        offset = 7
+                        for rowindex, entry in enumerate(data [offset:]):
                             if (entry[0] == "Schiff") and (entry[columnIndex] == schiff):
-                                # iteration starts not at line 0!
-                                offset = 7
                                 # assume 75% usage of ship for whole route
                                 # table lists 100% and 50%
                                 traveltime = int(data[rowindex+offset+1][columnIndex]) + int(data[rowindex+offset+2][columnIndex])
@@ -200,17 +211,14 @@ class Verbrauchsrechner(object):
         print(f"Berechnete Reisezeit: {traveltime} Tage")     
         return traveltime
 
-    def parseEfficencyTable(self, stadt = ""):
+    def parseEfficencyTable(self):
         data = []
         efficiency = []
-        # workaround if cities are read from file
-        if self.stadtName != "" and stadt == "":
-            stadt = self.stadtName
         if self.stadtName != "":
             with open(self.efficencyTableName, "rb") as fHandle:
                 for line in fHandle:
                     data.append(line.decode("Utf-8").strip().split(","))        
             for line in data:
-                if (line[0] == stadt):
+                if (line[0] == self.stadtName):
                     efficiency = line[1:]
         return efficiency
